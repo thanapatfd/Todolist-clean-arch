@@ -169,7 +169,7 @@ func (h todoHandler) Validation(payload ListPayload) (ListPayload, error) {
 	}
 
 	if payload.Status == "" {
-		payload.Status = "Todo"
+		payload.Status = ""
 	}
 	return payload, nil
 }
