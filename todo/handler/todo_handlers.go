@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/thanapatfd/todolist/todo/entity"
@@ -55,7 +54,6 @@ func (h todoHandler) GetLists(c *fiber.Ctx) error {
 	status := c.Query("status")
 	lists, err := h.usecase.GetLists(c.Context(), name, status)
 	if err != nil {
-		slog.Error("Error")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 

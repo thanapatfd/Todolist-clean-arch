@@ -33,6 +33,25 @@ services:
     command: ["--config", "/etc/otel-config.yaml"]
     ports:
         - "4317:4317"
+
+  grafana:
+    image: grafana/grafana:10.0.2
+    container_name: grafana
+    ports:
+      - "3000:3000"  # Expose grafan Dashboard
+    volumes:
+      - ./devops/grafana/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    ports:
+      - "3200:9411"
+    restart: always
 volumes:
   postgres_data:
     driver: local

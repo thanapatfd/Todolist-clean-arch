@@ -1,17 +1,16 @@
 package main
 
 import (
-	"context"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
 	handlers "github.com/thanapatfd/todolist/todo/handler"
+	"github.com/thanapatfd/todolist/todo/middleware"
 	"github.com/thanapatfd/todolist/todo/repository"
 	"github.com/thanapatfd/todolist/todo/server"
 	"github.com/thanapatfd/todolist/todo/usecases"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -25,12 +24,11 @@ func main() {
 	db := server.NewPosgrestDB()
 	todoRepo := repository.NewTodoRepository(db.Db)
 	todoUsecase := usecases.NewTodoUseCase(todoRepo)
+	todoHandler := handlers.NewTodoHandler(todoUsecase)
 
 	InitTracerWithOutput()
 
-	todoHandler := handlers.NewTodoHandler(todoUsecase)
-
-	// app.Use(middleware.Logging)
+	app.Use(middleware.Logging)
 
 	app.Get("/lists", todoHandler.GetLists)
 	app.Get("/lists/:id", todoHandler.GetListByID)
@@ -43,9 +41,6 @@ func main() {
 	app.Listen(":3000")
 }
 
-func newExporter(ctx context.Context) (trace.SpanExporter, error) {
-	return otlptracehttp.New(ctx)
-}
 func InitTracerWithOutput() {
 	traceExporter, err := stdouttrace.New(
 		stdouttrace.WithPrettyPrint())
