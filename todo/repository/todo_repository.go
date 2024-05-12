@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"log/slog"
 
 	"github.com/thanapatfd/todolist/todo/entity"
 	"gorm.io/gorm"
@@ -22,15 +23,25 @@ func NewTodoRepository(db *gorm.DB) *todoRepositoryDB {
 	return &todoRepositoryDB{db: db}
 }
 
-func (r todoRepositoryDB) GetLists() ([]entity.List, error) {
-	lists := []TodoModel{}
-	result := r.db.Find(&lists)
+func (r todoRepositoryDB) GetLists(name string, status string) ([]entity.List, error) {
+	listRepo := []TodoModel{}
+	result := r.db
+	if name != "" {
+		result = result.Where("name LIKE ?", "%"+name+"%")
+	}
+
+	if status != "" {
+		result = result.Where("status = ?", status)
+	}
+
+	result = result.Find(&listRepo)
 	if result.Error != nil {
+		slog.Error("query error")
 		return nil, result.Error
 	}
 
 	var rows []entity.List
-	for _, list := range lists {
+	for _, list := range listRepo {
 		// fmt.Println(list)
 		rows = append(rows, entity.List{
 			ID:      list.ID,
@@ -44,8 +55,8 @@ func (r todoRepositoryDB) GetLists() ([]entity.List, error) {
 }
 
 func (r todoRepositoryDB) GetListByID(id string) (entity.List, error) {
-	checkList := TodoModel{}
-	result := r.db.Where("id = ?", id).Limit(1).Find(&checkList)
+	listRepo := TodoModel{}
+	result := r.db.Where("id = ?", id).Limit(1).Find(&listRepo)
 	if result.Error != nil {
 		return entity.List{}, result.Error
 	}
@@ -55,10 +66,10 @@ func (r todoRepositoryDB) GetListByID(id string) (entity.List, error) {
 	}
 
 	return entity.List{
-		ID:      checkList.ID,
-		Name:    checkList.Name,
-		Status:  checkList.Status,
-		Details: checkList.Details,
+		ID:      listRepo.ID,
+		Name:    listRepo.Name,
+		Status:  listRepo.Status,
+		Details: listRepo.Details,
 	}, nil
 }
 
@@ -79,28 +90,60 @@ func (r todoRepositoryDB) CreateList(list entity.List) (entity.List, error) {
 	return list, nil
 }
 func (r todoRepositoryDB) UpdateList(list entity.List, id string) (entity.List, error) {
-	checkList := TodoModel{}
-	result := r.db.Where("id = ?", id).Limit(1).Find(&checkList)
+	listRepo := TodoModel{}
+	result := r.db.Where("id = ?", id).Limit(1).Find(&listRepo)
 	if result.Error != nil {
 		return entity.List{}, result.Error
-	} else {
-		updateList := TodoModel{
-			ID:      list.ID,
-			Name:    list.Name,
-			Status:  list.Status,
-			Details: list.Details,
-		}
-		result := r.db.Where("id = ?", id).Updates(&updateList)
-		if result.Error != nil {
-			return list, result.Error
-		}
-		lastInsertedID := 0
-		r.db.Table("todo_models").Select("id").Order("id desc").Limit(1).Row().Scan(&lastInsertedID)
-		list.ID = lastInsertedID
 
-		return list, nil
+	}
+	listRepo = TodoModel{
+		ID:      list.ID,
+		Name:    list.Name,
+		Status:  list.Status,
+		Details: list.Details,
+	}
+	result = r.db.Where("id = ?", id).Updates(&listRepo)
+	if result.Error != nil {
+		return list, result.Error
+	}
+	lastInsertedID := 0
+	r.db.Table("todo_models").Select("id").Order("id desc").Limit(1).Row().Scan(&lastInsertedID)
+	list.ID = lastInsertedID
+
+	return list, nil
+
+}
+
+func (r todoRepositoryDB) PatchList(list entity.List, id string) (entity.List, error) {
+	listRepo := TodoModel{}
+	result := r.db.Where("id = ?", id).Find(&listRepo)
+	if result.Error != nil {
+		return entity.List{}, result.Error
 	}
 
+	if list.Name != "" {
+		listRepo.Name = list.Name
+	}
+	if list.Status != "" {
+		listRepo.Status = list.Status
+	}
+	if list.Details != "" {
+		listRepo.Details = list.Details
+	}
+
+	result = r.db.Save(&listRepo)
+	if result.Error != nil {
+		return entity.List{}, result.Error
+	}
+
+	list = entity.List{
+		ID:      listRepo.ID,
+		Name:    listRepo.Name,
+		Status:  listRepo.Status,
+		Details: listRepo.Details,
+	}
+
+	return list, nil
 }
 
 func (r todoRepositoryDB) DeleteList(id string) error {
