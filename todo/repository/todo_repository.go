@@ -36,7 +36,7 @@ func (r todoRepositoryDB) GetLists(name string, status string) ([]entity.List, e
 
 	result = result.Find(&listRepo)
 	if result.Error != nil {
-		slog.Error("query error")
+		slog.Warn("query error")
 		return nil, result.Error
 	}
 
@@ -58,6 +58,7 @@ func (r todoRepositoryDB) GetListByID(id string) (entity.List, error) {
 	listRepo := TodoModel{}
 	result := r.db.Where("id = ?", id).Limit(1).Find(&listRepo)
 	if result.Error != nil {
+		slog.Error("query error")
 		return entity.List{}, result.Error
 	}
 
@@ -80,6 +81,7 @@ func (r todoRepositoryDB) CreateList(list entity.List) (entity.List, error) {
 		Details: list.Details,
 	})
 	if result.Error != nil {
+		slog.Error("query error")
 		return list, result.Error
 	}
 
@@ -93,6 +95,7 @@ func (r todoRepositoryDB) UpdateList(list entity.List, id string) (entity.List, 
 	listRepo := TodoModel{}
 	result := r.db.Where("id = ?", id).Limit(1).Find(&listRepo)
 	if result.Error != nil {
+		slog.Error("query error")
 		return entity.List{}, result.Error
 
 	}
@@ -104,6 +107,7 @@ func (r todoRepositoryDB) UpdateList(list entity.List, id string) (entity.List, 
 	}
 	result = r.db.Where("id = ?", id).Updates(&listRepo)
 	if result.Error != nil {
+		slog.Error("query error")
 		return list, result.Error
 	}
 	lastInsertedID := 0
@@ -118,6 +122,7 @@ func (r todoRepositoryDB) PatchList(list entity.List, id string) (entity.List, e
 	listRepo := TodoModel{}
 	result := r.db.Where("id = ?", id).Find(&listRepo)
 	if result.Error != nil {
+		slog.Error("query error")
 		return entity.List{}, result.Error
 	}
 
@@ -133,6 +138,7 @@ func (r todoRepositoryDB) PatchList(list entity.List, id string) (entity.List, e
 
 	result = r.db.Save(&listRepo)
 	if result.Error != nil {
+		slog.Error("query error")
 		return entity.List{}, result.Error
 	}
 

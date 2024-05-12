@@ -15,7 +15,7 @@ func NewTodoUseCase(repo todoRepository) TodoUseCase {
 }
 
 func (uc TodoUseCase) GetLists(ctx context.Context, name string, status string) ([]entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "usecases.GetLists")
+	_, sp := tracer.Start(ctx, "usecases.GetLists")
 	defer sp.End()
 
 	list, err := uc.repo.GetLists(name, status)
@@ -30,7 +30,7 @@ func (uc TodoUseCase) GetLists(ctx context.Context, name string, status string) 
 }
 
 func (uc TodoUseCase) GetListByID(ctx context.Context, id string) (entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "usecases.GetListByID")
+	_, sp := tracer.Start(ctx, "usecases.GetListByID")
 	defer sp.End()
 
 	list, err := uc.repo.GetListByID(id)
@@ -44,7 +44,7 @@ func (uc TodoUseCase) GetListByID(ctx context.Context, id string) (entity.List, 
 	return list, nil
 }
 func (uc TodoUseCase) CreateList(ctx context.Context, list entity.List) (entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "usecases.CreateList")
+	_, sp := tracer.Start(ctx, "usecases.CreateList")
 	defer sp.End()
 
 	list, err := uc.repo.CreateList(list)
@@ -58,7 +58,7 @@ func (uc TodoUseCase) CreateList(ctx context.Context, list entity.List) (entity.
 }
 
 func (uc TodoUseCase) UpdateList(ctx context.Context, list entity.List, id string) (entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "usecases.UpdateList")
+	_, sp := tracer.Start(ctx, "usecases.UpdateList")
 	defer sp.End()
 
 	err1 := list.ChangeStatus(list.Status)
@@ -78,7 +78,7 @@ func (uc TodoUseCase) UpdateList(ctx context.Context, list entity.List, id strin
 }
 
 func (uc TodoUseCase) PatchList(ctx context.Context, list entity.List, id string) (entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "usecases.PatchList")
+	_, sp := tracer.Start(ctx, "usecases.PatchList")
 	defer sp.End()
 
 	list, err := uc.repo.PatchList(list, id)
@@ -93,7 +93,7 @@ func (uc TodoUseCase) PatchList(ctx context.Context, list entity.List, id string
 }
 
 func (uc TodoUseCase) DeleteList(ctx context.Context, id string) error {
-	ctx, sp := tracer.Start(ctx, "usecases.DeleteList")
+	_, sp := tracer.Start(ctx, "usecases.DeleteList")
 	defer sp.End()
 
 	err := uc.repo.DeleteList(id)
@@ -107,7 +107,7 @@ func (uc TodoUseCase) DeleteList(ctx context.Context, id string) error {
 }
 
 func (uc TodoUseCase) SortListsByID(ctx context.Context) ([]entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "usecases.SortListByID")
+	_, sp := tracer.Start(ctx, "usecases.SortListByID")
 	defer sp.End()
 
 	list, err := uc.repo.SortListsByID()
