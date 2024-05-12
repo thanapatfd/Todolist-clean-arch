@@ -29,9 +29,9 @@ func (l *List) ChangeStatus(newStatus string) error {
 	if l.Status == "Done" && (newStatus == "Doing" || newStatus == "Todo") {
 		return errors.New("cannot change status from Done")
 	}
-	
+
 	if l.Status == "Done" && newStatus == "Done" {
-		return errors.New("cannot change because status already done")
+		return nil
 	}
 
 	return errors.New("invalid status na jaa")
