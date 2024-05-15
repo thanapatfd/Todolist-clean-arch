@@ -1,22 +1,26 @@
 package main
 
 import (
-	"log"
-
 	"github.com/gofiber/fiber/v2"
 	handlers "github.com/thanapatfd/todolist/todo/handler"
 	"github.com/thanapatfd/todolist/todo/middleware"
 	"github.com/thanapatfd/todolist/todo/repository"
 	"github.com/thanapatfd/todolist/todo/server"
 	"github.com/thanapatfd/todolist/todo/usecases"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
+
+type config struct {
+	AppName     string `env:"APP_NAME" envDefault:"TodoList-By-Ford"`
+	AppVersion  string `env:"APP_VERSION" envDefault:"v0.0.0"`
+	Environment string `env:"ENVIRONMENT" envDefault:"development"`
+	Port        uint   `env:"PORT" envDefault:"5050"`
+	Debuglog    bool   `env:"DEBUG_LOG" envDefault:"true"`
+
+	Services struct {
+		OtelGrpcEndpoint      string `env:"OTEL_GRPC_ENDPOINT" envDefault:"localhost:4317"`
+		AddressServiceBaseUrl string `env:"SERVICE_ADDRESS_BASE_URL" envDefault:"http://localhost:8080"`
+	}
+}
 
 func main() {
 
@@ -26,8 +30,9 @@ func main() {
 	todoUsecase := usecases.NewTodoUseCase(todoRepo)
 	todoHandler := handlers.NewTodoHandler(todoUsecase)
 
-	InitTracerWithOutput()
+	cfg := initEnvironment()
 
+	initTracer(cfg)
 	app.Use(middleware.Logging)
 
 	app.Get("/lists", todoHandler.GetLists)
@@ -38,22 +43,5 @@ func main() {
 	app.Patch("/lists/:id", todoHandler.PatchList)
 	app.Delete("/lists/:id", todoHandler.DeleteList)
 
-	app.Listen(":3000")
-}
-
-func InitTracerWithOutput() {
-	traceExporter, err := stdouttrace.New(
-		stdouttrace.WithPrettyPrint())
-	if err != nil {
-		log.Fatal(err)
-	}
-	tp := trace.NewTracerProvider(
-		trace.WithBatcher(traceExporter),
-		trace.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			attribute.String("environment", "Development"),
-		)),
-	)
-	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	app.Listen(":5050")
 }

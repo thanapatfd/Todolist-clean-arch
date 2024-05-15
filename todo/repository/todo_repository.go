@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 
@@ -23,9 +24,9 @@ func NewTodoRepository(db *gorm.DB) *todoRepositoryDB {
 	return &todoRepositoryDB{db: db}
 }
 
-func (r todoRepositoryDB) GetLists(name string, status string) ([]entity.List, error) {
+func (r todoRepositoryDB) GetLists(ctx context.Context, name string, status string) ([]entity.List, error) {
 	listRepo := []TodoModel{}
-	result := r.db
+	result := r.db.WithContext(ctx)
 	if name != "" {
 		result = result.Where("name LIKE ?", "%"+name+"%")
 	}
@@ -54,9 +55,9 @@ func (r todoRepositoryDB) GetLists(name string, status string) ([]entity.List, e
 	return rows, nil
 }
 
-func (r todoRepositoryDB) GetListByID(id string) (entity.List, error) {
+func (r todoRepositoryDB) GetListByID(ctx context.Context, id string) (entity.List, error) {
 	listRepo := TodoModel{}
-	result := r.db.Where("id = ?", id).Limit(1).Find(&listRepo)
+	result := r.db.WithContext(ctx).Where("id = ?", id).Limit(1).Find(&listRepo)
 	if result.Error != nil {
 		slog.Error("query error")
 		return entity.List{}, result.Error
@@ -74,8 +75,8 @@ func (r todoRepositoryDB) GetListByID(id string) (entity.List, error) {
 	}, nil
 }
 
-func (r todoRepositoryDB) CreateList(list entity.List) (entity.List, error) {
-	result := r.db.Create(&TodoModel{
+func (r todoRepositoryDB) CreateList(ctx context.Context, list entity.List) (entity.List, error) {
+	result := r.db.WithContext(ctx).Create(&TodoModel{
 		Name:    list.Name,
 		Status:  list.Status,
 		Details: list.Details,
@@ -91,9 +92,12 @@ func (r todoRepositoryDB) CreateList(list entity.List) (entity.List, error) {
 
 	return list, nil
 }
-func (r todoRepositoryDB) UpdateList(list entity.List, id string) (entity.List, error) {
+func (r todoRepositoryDB) UpdateList(ctx context.Context, list entity.List, id string) (entity.List, error) {
+	ctx, sp := tracer.Start(ctx, "repository_UpdateList")
+	defer sp.End()
+
 	listRepo := TodoModel{}
-	result := r.db.Where("id = ?", id).Limit(1).Find(&listRepo)
+	result := r.db.WithContext(ctx).Where("id = ?", id).Limit(1).Find(&listRepo)
 	if result.Error != nil {
 		slog.Error("query error")
 		return entity.List{}, result.Error
@@ -105,7 +109,7 @@ func (r todoRepositoryDB) UpdateList(list entity.List, id string) (entity.List, 
 		Status:  list.Status,
 		Details: list.Details,
 	}
-	result = r.db.Where("id = ?", id).Updates(&listRepo)
+	result = r.db.WithContext(ctx).Where("id = ?", id).Updates(&listRepo)
 	if result.Error != nil {
 		slog.Error("query error")
 		return list, result.Error
@@ -118,9 +122,9 @@ func (r todoRepositoryDB) UpdateList(list entity.List, id string) (entity.List, 
 
 }
 
-func (r todoRepositoryDB) PatchList(list entity.List, id string) (entity.List, error) {
+func (r todoRepositoryDB) PatchList(ctx context.Context, list entity.List, id string) (entity.List, error) {
 	listRepo := TodoModel{}
-	result := r.db.Where("id = ?", id).Find(&listRepo)
+	result := r.db.WithContext(ctx).Where("id = ?", id).Find(&listRepo)
 	if result.Error != nil {
 		slog.Error("query error")
 		return entity.List{}, result.Error
@@ -136,7 +140,7 @@ func (r todoRepositoryDB) PatchList(list entity.List, id string) (entity.List, e
 		listRepo.Details = list.Details
 	}
 
-	result = r.db.Save(&listRepo)
+	result = r.db.WithContext(ctx).Save(&listRepo)
 	if result.Error != nil {
 		slog.Error("query error")
 		return entity.List{}, result.Error
@@ -152,20 +156,22 @@ func (r todoRepositoryDB) PatchList(list entity.List, id string) (entity.List, e
 	return list, nil
 }
 
-func (r todoRepositoryDB) DeleteList(id string) error {
+func (r todoRepositoryDB) DeleteList(ctx context.Context, id string) error {
 	deleteList := TodoModel{}
 
-	result := r.db.Where("id = ?", id).Delete(&deleteList)
+	result := r.db.WithContext(ctx).Where("id = ?", id).Delete(&deleteList)
 	if result.Error != nil {
+		slog.Error("query error")
 		return result.Error
 	}
 	return nil
 }
 
-func (r todoRepositoryDB) SortListsByID() ([]entity.List, error) {
+func (r todoRepositoryDB) SortListsByID(ctx context.Context) ([]entity.List, error) {
 	lists := []TodoModel{}
-	result := r.db.Order("id").Find(&lists)
+	result := r.db.WithContext(ctx).Order("id").Find(&lists)
 	if result.Error != nil {
+		slog.Error("query error")
 		return nil, result.Error
 	}
 
