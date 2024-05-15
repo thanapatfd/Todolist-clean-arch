@@ -22,13 +22,7 @@ type ListResponse struct {
 	Status  string `json:"status"`
 	Details string `json:"details"`
 }
-
-type ErrorResponse struct {
-	Error     string `json:"error"`
-	ErrorCode string `json:"error_code"`
-	IssueId   string `json:"issue_id"`
-}
-
+ 
 type TodoHandler interface {
 	CreateList(c *fiber.Ctx) error
 	GetListByID(c *fiber.Ctx) error

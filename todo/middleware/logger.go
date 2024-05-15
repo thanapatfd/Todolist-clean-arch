@@ -33,7 +33,7 @@ func Logging(c *fiber.Ctx) error {
 		"Handler", c.Route().Path,
 		"Query", c.Queries(),
 		"Body", string(c.Body()),
-		"Headers", c.GetReqHeaders(),
+		"Headers", fiberHeadersToMap(c.GetRespHeaders()),
 		"Params", c.AllParams(),
 		"RemoteIP", c.IP())
 

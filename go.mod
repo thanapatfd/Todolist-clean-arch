@@ -7,6 +7,7 @@ require github.com/valyala/tcplisten v1.0.0 // indirectrect
 require (
 	github.com/Sellsuki/sellsuki-go-logger v1.1.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/caarlos0/env/v10 v10.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
