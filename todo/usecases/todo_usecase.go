@@ -1,20 +1,22 @@
 package usecases
 
 import (
-	"context"
-
-	"github.com/thanapatfd/todolist/todo/entity"
+	"github.com/thanapatfd/todolist/todo/usecases/repository"
 	"go.opentelemetry.io/otel"
 )
 
 var tracer = otel.Tracer("usecases")
 
-type todoRepository interface {
-	CreateList(ctx context.Context, list entity.List) (entity.List, error)
-	GetListByID(ctx context.Context, id string) (entity.List, error)
-	GetLists(ctx context.Context, name string, status string) ([]entity.List, error)
-	UpdateList(ctx context.Context, list entity.List, id string) (entity.List, error)
-	PatchList(ctx context.Context, list entity.List, id string) (entity.List, error)
-	DeleteList(ctx context.Context, id string) error
-	SortListsByID(ctx context.Context) ([]entity.List, error)
+// TodoUseCase struct คือการจัดกลุ่มฟังก์ชันและข้อมูลที่เกี่ยวข้องกับ use case ของ todo list
+type TodoUseCase struct {
+	todoRepo repository.TodoRepository // Dependency: todoRepo ชนิด TodoRepository ที่จะถูก inject เข้ามา
+}
+
+// NewUsecase คือ constructor function สำหรับสร้าง instance ของ TodoUseCase
+func NewUsecase(
+	todoRepo repository.TodoRepository,
+) TodoUseCase {
+	return TodoUseCase{
+		todoRepo: todoRepo, // กำหนดค่าให้กับฟิลด์ todoRepo ใน struct TodoUseCase
+	}
 }

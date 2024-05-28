@@ -34,5 +34,5 @@ func (l *List) ChangeStatus(newStatus string) error {
 		return nil
 	}
 
-	return errors.New("invalid status na jaa")
+	return errors.New("invalid status")
 }

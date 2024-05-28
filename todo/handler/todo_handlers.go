@@ -13,7 +13,6 @@ type ListPayload struct {
 	Name    string `json:"name" validate:"required"`
 	Status  string `json:"status" validate:"required"`
 	Details string `json:"details" validate:"required"`
-	// CreateAt time.Time
 }
 
 type ListResponse struct {
@@ -22,7 +21,7 @@ type ListResponse struct {
 	Status  string `json:"status"`
 	Details string `json:"details"`
 }
- 
+
 type TodoHandler interface {
 	CreateList(c *fiber.Ctx) error
 	GetListByID(c *fiber.Ctx) error
@@ -39,14 +38,16 @@ type todoHandler struct {
 }
 
 func NewTodoHandler(usecase usecases.TodoUseCase) TodoHandler {
-	return &todoHandler{usecase: usecase}
+	return todoHandler{usecase: usecase}
 }
 
 func (h todoHandler) GetLists(c *fiber.Ctx) error {
+	ctx, sp := tracer.Start(c.Context(), "handlers.GetLists")
+	defer sp.End()
 	res := []ListResponse{}
 	name := c.Query("name")
 	status := c.Query("status")
-	lists, err := h.usecase.GetLists(c.Context(), name, status)
+	lists, err := h.usecase.GetLists(ctx, name, status)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -59,12 +60,15 @@ func (h todoHandler) GetLists(c *fiber.Ctx) error {
 			Details: rows.Details,
 		})
 	}
+
 	return c.Status(fiber.StatusOK).JSON(res)
 }
 
 func (h todoHandler) GetListByID(c *fiber.Ctx) error {
+	ctx, sp := tracer.Start(c.Context(), "handlers.GetListByID")
+	defer sp.End()
 	id := c.Params("id")
-	list, err := h.usecase.GetListByID(c.Context(), id)
+	list, err := h.usecase.GetListByID(ctx, id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -79,6 +83,8 @@ func (h todoHandler) GetListByID(c *fiber.Ctx) error {
 }
 
 func (h todoHandler) CreateList(c *fiber.Ctx) error {
+	ctx, sp := tracer.Start(c.Context(), "handlers.CreateList")
+	defer sp.End()
 	payload := new(ListPayload)
 	if err := c.BodyParser(payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -95,7 +101,7 @@ func (h todoHandler) CreateList(c *fiber.Ctx) error {
 		Details: checkValid.Details,
 	}
 
-	result, err := h.usecase.CreateList(c.Context(), list)
+	result, err := h.usecase.CreateList(ctx, list)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -109,6 +115,8 @@ func (h todoHandler) CreateList(c *fiber.Ctx) error {
 }
 
 func (h todoHandler) UpdateList(c *fiber.Ctx) error {
+	ctx, sp := tracer.Start(c.Context(), "handlers.UpdateList")
+	defer sp.End()
 	id := c.Params("id")
 	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "missing id"})
@@ -129,7 +137,7 @@ func (h todoHandler) UpdateList(c *fiber.Ctx) error {
 		Details: checkValid.Details,
 	}
 
-	updateList, err := h.usecase.UpdateList(c.Context(), list, id)
+	updateList, err := h.usecase.UpdateList(ctx, list, id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -144,12 +152,13 @@ func (h todoHandler) UpdateList(c *fiber.Ctx) error {
 }
 
 func (h todoHandler) PatchList(c *fiber.Ctx) error {
+	ctx, sp := tracer.Start(c.Context(), "handlers.PatchList")
+	defer sp.End()
 	id := c.Params("id")
 	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "missing id"})
 	}
 
-	// Parsing the request body to the ListPayload structure
 	var payload ListPayload
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
@@ -162,13 +171,11 @@ func (h todoHandler) PatchList(c *fiber.Ctx) error {
 		Details: payload.Details,
 	}
 
-	// Call the PatchList method from the repository
-	updatedList, err := h.usecase.PatchList(c.Context(), listToUpdate, id)
+	updatedList, err := h.usecase.PatchList(ctx, listToUpdate, id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	// Prepare the response
 	response := ListResponse{
 		ID:      updatedList.ID,
 		Name:    updatedList.Name,
@@ -176,13 +183,14 @@ func (h todoHandler) PatchList(c *fiber.Ctx) error {
 		Details: updatedList.Details,
 	}
 
-	// Send the successful response
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 func (h todoHandler) DeleteList(c *fiber.Ctx) error {
+	ctx, sp := tracer.Start(c.Context(), "handlers.DeleteList")
+	defer sp.End()
 	id := c.Params("id")
-	err := h.usecase.DeleteList(c.Context(), id)
+	err := h.usecase.DeleteList(ctx, id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -190,8 +198,10 @@ func (h todoHandler) DeleteList(c *fiber.Ctx) error {
 }
 
 func (h todoHandler) SortListsByID(c *fiber.Ctx) error {
+	ctx, sp := tracer.Start(c.Context(), "handlers.SortListByID")
+	defer sp.End()
 	res := []ListResponse{}
-	lists, err := h.usecase.SortListsByID(c.Context())
+	lists, err := h.usecase.SortListsByID(ctx)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -208,13 +218,9 @@ func (h todoHandler) SortListsByID(c *fiber.Ctx) error {
 }
 
 func (h todoHandler) Validation(payload ListPayload) (ListPayload, error) {
-
-	if payload.Name == "" || payload.Details == "" {
+	if payload.Name == "" || payload.Details == "" || payload.Status == "" {
 		return payload, errors.New("missing required fields: all fields must be non-empty")
 	}
 
-	if payload.Status == "" {
-		payload.Status = "Todo"
-	}
 	return payload, nil
 }

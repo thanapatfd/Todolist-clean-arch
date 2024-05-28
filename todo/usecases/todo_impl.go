@@ -7,19 +7,11 @@ import (
 	"github.com/thanapatfd/todolist/todo/entity"
 )
 
-type TodoUseCase struct {
-	repo todoRepository
-}
-
-func NewTodoUseCase(repo todoRepository) TodoUseCase {
-	return TodoUseCase{repo: repo}
-}
-
 func (uc TodoUseCase) GetLists(ctx context.Context, name string, status string) ([]entity.List, error) {
 	ctx, sp := tracer.Start(ctx, "usecases.GetLists")
 	defer sp.End()
 
-	list, err := uc.repo.GetLists(ctx, name, status)
+	list, err := uc.todoRepo.GetLists(ctx, name, status)
 	if err != nil {
 		sp.RecordError(err)
 		slog.Error("query error")
@@ -35,7 +27,7 @@ func (uc TodoUseCase) GetListByID(ctx context.Context, id string) (entity.List, 
 	ctx, sp := tracer.Start(ctx, "usecases.GetListByID")
 	defer sp.End()
 
-	list, err := uc.repo.GetListByID(ctx, id)
+	list, err := uc.todoRepo.GetListByID(ctx, id)
 	if err != nil {
 		sp.RecordError(err)
 		return list, err
@@ -49,7 +41,7 @@ func (uc TodoUseCase) CreateList(ctx context.Context, list entity.List) (entity.
 	ctx, sp := tracer.Start(ctx, "usecases.CreateList")
 	defer sp.End()
 
-	list, err := uc.repo.CreateList(ctx, list)
+	list, err := uc.todoRepo.CreateList(ctx, list)
 	if err != nil {
 		sp.RecordError(err)
 		return list, err
@@ -69,9 +61,8 @@ func (uc TodoUseCase) UpdateList(ctx context.Context, list entity.List, id strin
 		sp.RecordError(err1)
 		return list, err1
 	}
-	sp.AddEvent("Change Status Success")
 
-	list, err := uc.repo.UpdateList(ctx, list, id)
+	list, err := uc.todoRepo.UpdateList(ctx, list, id)
 	if err != nil {
 		sp.RecordError(err)
 		return list, err
@@ -86,7 +77,7 @@ func (uc TodoUseCase) PatchList(ctx context.Context, list entity.List, id string
 	ctx, sp := tracer.Start(ctx, "usecases.PatchList")
 	defer sp.End()
 
-	list, err := uc.repo.PatchList(ctx, list, id)
+	list, err := uc.todoRepo.PatchList(ctx, list, id)
 	if err != nil {
 		sp.RecordError(err)
 		return list, err
@@ -102,7 +93,7 @@ func (uc TodoUseCase) DeleteList(ctx context.Context, id string) error {
 	ctx, sp := tracer.Start(ctx, "usecases.DeleteList")
 	defer sp.End()
 
-	err := uc.repo.DeleteList(ctx, id)
+	err := uc.todoRepo.DeleteList(ctx, id)
 	if err != nil {
 		sp.RecordError(err)
 		return err
@@ -117,7 +108,7 @@ func (uc TodoUseCase) SortListsByID(ctx context.Context) ([]entity.List, error) 
 	ctx, sp := tracer.Start(ctx, "usecases.SortListByID")
 	defer sp.End()
 
-	list, err := uc.repo.SortListsByID(ctx)
+	list, err := uc.todoRepo.SortListsByID(ctx)
 	if err != nil {
 		sp.RecordError(err)
 		return nil, err
