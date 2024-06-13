@@ -30,6 +30,7 @@ type TodoHandler interface {
 	PatchList(c *fiber.Ctx) error
 	DeleteList(c *fiber.Ctx) error
 	SortListsByID(c *fiber.Ctx) error
+	ChangeStatus(c *fiber.Ctx) error
 	Validation(payload ListPayload) (ListPayload, error)
 }
 
@@ -215,6 +216,44 @@ func (h todoHandler) SortListsByID(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"lists": res})
+}
+func (h todoHandler) ChangeStatus(c *fiber.Ctx) error {
+	ctx, sp := tracer.Start(c.Context(), "handlers.ChangeStatus")
+	defer sp.End()
+
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "missing id"})
+	}
+	payload := new(ListPayload)
+	if err := c.BodyParser(payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	checkValid, err := h.Validation(*payload)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	list := entity.List{
+		ID:      checkValid.ID,
+		Name:    checkValid.Name,
+		Status:  checkValid.Status,
+		Details: checkValid.Details,
+	}
+
+	updateList, err := h.usecase.ChangeStatus(ctx, list, id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	res := ListResponse{
+		ID:      updateList.ID,
+		Name:    updateList.Name,
+		Status:  updateList.Status,
+		Details: updateList.Details,
+	}
+	return c.Status(fiber.StatusOK).JSON(res)
+
 }
 
 func (h todoHandler) Validation(payload ListPayload) (ListPayload, error) {

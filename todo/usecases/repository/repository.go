@@ -14,4 +14,5 @@ type TodoRepository interface {
 	PatchList(ctx context.Context, list entity.List, id string) (entity.List, error)
 	DeleteList(ctx context.Context, id string) error
 	SortListsByID(ctx context.Context) ([]entity.List, error)
+	ChangeStatus(ctx context.Context, list entity.List, id string) (entity.List, error)
 }

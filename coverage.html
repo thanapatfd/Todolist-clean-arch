@@ -1,0 +1,1202 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>cmd: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/thanapatfd/todolist/todo/cmd/helper.go (0.0%)</option>
+				
+				<option value="file1">github.com/thanapatfd/todolist/todo/cmd/main.go (0.0%)</option>
+				
+				<option value="file2">github.com/thanapatfd/todolist/todo/entity/todo_entity.go (100.0%)</option>
+				
+				<option value="file3">github.com/thanapatfd/todolist/todo/handler/todo_handlers.go (0.0%)</option>
+				
+				<option value="file4">github.com/thanapatfd/todolist/todo/middleware/logger.go (0.0%)</option>
+				
+				<option value="file5">github.com/thanapatfd/todolist/todo/middleware/tracer.go (0.0%)</option>
+				
+				<option value="file6">github.com/thanapatfd/todolist/todo/repository/todo_repository.go (0.0%)</option>
+				
+				<option value="file7">github.com/thanapatfd/todolist/todo/server/connect.go (0.0%)</option>
+				
+				<option value="file8">github.com/thanapatfd/todolist/todo/usecases/repository/mock_todo.go (100.0%)</option>
+				
+				<option value="file9">github.com/thanapatfd/todolist/todo/usecases/todo_impl.go (100.0%)</option>
+				
+				<option value="file10">github.com/thanapatfd/todolist/todo/usecases/todo_usecase.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "context"
+        "log"
+        "log/slog"
+        "os"
+
+        "github.com/caarlos0/env/v10"
+        "go.opentelemetry.io/otel"
+        "go.opentelemetry.io/otel/attribute"
+        "go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+        "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+        "go.opentelemetry.io/otel/propagation"
+        "go.opentelemetry.io/otel/sdk/resource"
+        "go.opentelemetry.io/otel/sdk/trace"
+        semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+)
+
+func initEnvironment() config <span class="cov0" title="0">{
+        log.SetFlags(log.Flags() &amp;^ (log.Ldate | log.Ltime)) // ลบ timestamp จาก log
+
+        // โหลด environment variables จาก env
+        // err := godotenv.Load()
+        // if err != nil {
+        //         log.Printf("Failed loading .env file: %s", err)
+        // }
+
+        var cfg config
+        // parse environment variables ให้เป็น struct config
+        err := env.Parse(&amp;cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Error parse env to struct: %s", err)
+        }</span>
+
+        <span class="cov0" title="0">return cfg</span>
+}
+
+func initLogger(cfg config) <span class="cov0" title="0">{
+        // กำหนดระดับการ log เริ่มต้นเป็น Info
+
+        logLevel := slog.LevelInfo
+        if cfg.Debuglog </span><span class="cov0" title="0">{
+                // ถ้าเปิดโหมด debug จะตั้งระดับการ log เป็น Debug
+                logLevel = slog.LevelDebug
+        }</span>
+
+        // สร้างตัวจัดการ log แบบ JSON และตั้งค่า options
+        <span class="cov0" title="0">logger := slog.New(slog.NewJSONHandler(os.Stderr, &amp;slog.HandlerOptions{
+                Level: logLevel,
+        }))
+
+        // ตั้งค่า logger เริ่มต้น
+        slog.SetDefault(logger)</span>
+}
+
+func initTracer(cfg config) <span class="cov0" title="0">{
+        // สร้าง OTLP gRPC client
+        client := otlptracegrpc.NewClient(
+                otlptracegrpc.WithInsecure(),
+                otlptracegrpc.WithEndpoint(cfg.Services.OtelGrpcEndpoint),
+        )
+
+        // สร้าง OTLP trace exporter
+        exporter, err := otlptrace.New(context.Background(), client)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("Error initializing OTLP exporter: %v", err)
+        }</span>
+
+        // สร้าง TracerProvider และกำหนดการตั้งค่า เป็น Batch Expoter และกำหรด Resource ต่างๆ
+        <span class="cov0" title="0">tp := trace.NewTracerProvider(
+                trace.WithBatcher(exporter),
+                trace.WithResource(resource.NewWithAttributes(
+                        semconv.SchemaURL,
+                        semconv.ServiceNameKey.String(cfg.AppName),
+                        semconv.ServiceVersionKey.String(cfg.AppVersion),
+                        attribute.String("environment", cfg.Environment),
+                )),
+        )
+        // กำหนด TracerProvider ที่จะใช้ด้วย OpenTelemetry
+        otel.SetTracerProvider(tp)
+
+        // กำหนด propagator สำหรับ context propagation
+        otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "github.com/gofiber/fiber/v2"
+        handlers "github.com/thanapatfd/todolist/todo/handler"
+        "github.com/thanapatfd/todolist/todo/middleware"
+        "github.com/thanapatfd/todolist/todo/repository"
+        "github.com/thanapatfd/todolist/todo/server"
+        "github.com/thanapatfd/todolist/todo/usecases"
+)
+
+type config struct {
+        AppName     string `env:"APP_NAME" envDefault:"TodoList-By-Ford"`
+        AppVersion  string `env:"APP_VERSION" envDefault:"v0.0.0"`
+        Environment string `env:"ENVIRONMENT" envDefault:"development"`
+        Port        uint   `env:"PORT" envDefault:"5050"`
+        Debuglog    bool   `env:"DEBUG_LOG" envDefault:"true"`
+
+        Services struct {
+                OtelGrpcEndpoint      string `env:"OTEL_GRPC_ENDPOINT" envDefault:"localhost:4317"`
+                AddressServiceBaseUrl string `env:"SERVICE_ADDRESS_BASE_URL" envDefault:"http://localhost:8080"`
+        }
+}
+
+func main() <span class="cov0" title="0">{
+
+        app := fiber.New()
+        db := server.NewPosgrestDB()
+        todoRepo := repository.NewTodoRepository(db.Db)
+        todoUsecase := usecases.NewUsecase(todoRepo)
+        todoHandler := handlers.NewTodoHandler(todoUsecase)
+
+        cfg := initEnvironment()
+        initTracer(cfg)
+        initLogger(cfg)
+
+        app.Use(middleware.Logging)
+
+        app.Get("/lists", todoHandler.GetLists)
+        app.Get("/lists/:id", todoHandler.GetListByID)
+        app.Get("/lists/sort/id", todoHandler.SortListsByID)
+        app.Post("/lists", todoHandler.CreateList)
+        app.Put("/lists/:id", todoHandler.UpdateList)
+        app.Patch("/lists/:id", todoHandler.PatchList)
+        app.Delete("/lists/:id", todoHandler.DeleteList)
+        app.Put("/lists/changestatus/:id", todoHandler.ChangeStatus)
+
+        app.Listen(":5050")
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package entity
+
+import (
+        "errors"
+        "fmt"
+)
+
+type List struct {
+        ID      int
+        Name    string
+        Status  string
+        Details string
+}
+
+func (l *List) ChangeStatus(newStatus string) error <span class="cov8" title="1">{
+        fmt.Printf("Current Status: %s, New Status: %s\n", l.Status, newStatus)
+
+        if newStatus == "" </span><span class="cov8" title="1">{
+                return errors.New("invalid status")
+        }</span>
+
+        <span class="cov8" title="1">if l.Status == "Todo" &amp;&amp; newStatus == "Doing" </span><span class="cov8" title="1">{
+                l.Status = newStatus
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">if l.Status == "Doing" &amp;&amp; newStatus == "Done" </span><span class="cov8" title="1">{
+                l.Status = newStatus
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">if l.Status == "Done" &amp;&amp; (newStatus == "Doing" || newStatus == "Todo") </span><span class="cov8" title="1">{
+                return errors.New("cannot change status from Done")
+        }</span>
+
+        <span class="cov8" title="1">if l.Status == "Done" &amp;&amp; newStatus == "Done" </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">return errors.New("invalid status")</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package handlers
+
+import (
+        "errors"
+
+        "github.com/gofiber/fiber/v2"
+        "github.com/thanapatfd/todolist/todo/entity"
+        "github.com/thanapatfd/todolist/todo/usecases"
+)
+
+type ListPayload struct {
+        ID      int    `json:"id"`
+        Name    string `json:"name" validate:"required"`
+        Status  string `json:"status" validate:"required"`
+        Details string `json:"details" validate:"required"`
+}
+
+type ListResponse struct {
+        ID      int    `json:"id"`
+        Name    string `json:"name"`
+        Status  string `json:"status"`
+        Details string `json:"details"`
+}
+
+type TodoHandler interface {
+        CreateList(c *fiber.Ctx) error
+        GetListByID(c *fiber.Ctx) error
+        GetLists(c *fiber.Ctx) error
+        UpdateList(c *fiber.Ctx) error
+        PatchList(c *fiber.Ctx) error
+        DeleteList(c *fiber.Ctx) error
+        SortListsByID(c *fiber.Ctx) error
+        ChangeStatus(c *fiber.Ctx) error
+        Validation(payload ListPayload) (ListPayload, error)
+}
+
+type todoHandler struct {
+        usecase usecases.TodoUseCase
+}
+
+func NewTodoHandler(usecase usecases.TodoUseCase) TodoHandler <span class="cov0" title="0">{
+        return todoHandler{usecase: usecase}
+}</span>
+
+func (h todoHandler) GetLists(c *fiber.Ctx) error <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(c.Context(), "handlers.GetLists")
+        defer sp.End()
+        res := []ListResponse{}
+        name := c.Query("name")
+        status := c.Query("status")
+        lists, err := h.usecase.GetLists(ctx, name, status)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+
+        <span class="cov0" title="0">for _, rows := range lists </span><span class="cov0" title="0">{
+                res = append(res, ListResponse{
+                        ID:      rows.ID,
+                        Name:    rows.Name,
+                        Status:  rows.Status,
+                        Details: rows.Details,
+                })
+        }</span>
+
+        <span class="cov0" title="0">return c.Status(fiber.StatusOK).JSON(res)</span>
+}
+
+func (h todoHandler) GetListByID(c *fiber.Ctx) error <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(c.Context(), "handlers.GetListByID")
+        defer sp.End()
+        id := c.Params("id")
+        list, err := h.usecase.GetListByID(ctx, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+        <span class="cov0" title="0">res := ListResponse{
+                ID:      list.ID,
+                Name:    list.Name,
+                Status:  list.Status,
+                Details: list.Details,
+        }
+
+        return c.Status(fiber.StatusOK).JSON(res)</span>
+}
+
+func (h todoHandler) CreateList(c *fiber.Ctx) error <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(c.Context(), "handlers.CreateList")
+        defer sp.End()
+        payload := new(ListPayload)
+        if err := c.BodyParser(payload); err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+        <span class="cov0" title="0">checkValid, err := h.Validation(*payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+
+        <span class="cov0" title="0">list := entity.List{
+                ID:      checkValid.ID,
+                Name:    checkValid.Name,
+                Status:  checkValid.Status,
+                Details: checkValid.Details,
+        }
+
+        result, err := h.usecase.CreateList(ctx, list)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+        <span class="cov0" title="0">res := ListResponse{
+                ID:      result.ID,
+                Name:    result.Name,
+                Status:  result.Status,
+                Details: result.Details,
+        }
+        return c.Status(fiber.StatusOK).JSON(res)</span>
+}
+
+func (h todoHandler) UpdateList(c *fiber.Ctx) error <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(c.Context(), "handlers.UpdateList")
+        defer sp.End()
+        id := c.Params("id")
+        if id == "" </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "missing id"})
+        }</span>
+        <span class="cov0" title="0">payload := new(ListPayload)
+        if err := c.BodyParser(payload); err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+        <span class="cov0" title="0">checkValid, err := h.Validation(*payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+
+        <span class="cov0" title="0">list := entity.List{
+                ID:      checkValid.ID,
+                Name:    checkValid.Name,
+                Status:  checkValid.Status,
+                Details: checkValid.Details,
+        }
+
+        updateList, err := h.usecase.UpdateList(ctx, list, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+        <span class="cov0" title="0">res := ListResponse{
+                ID:      updateList.ID,
+                Name:    updateList.Name,
+                Status:  updateList.Status,
+                Details: updateList.Details,
+        }
+        return c.Status(fiber.StatusOK).JSON(res)</span>
+
+}
+
+func (h todoHandler) PatchList(c *fiber.Ctx) error <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(c.Context(), "handlers.PatchList")
+        defer sp.End()
+        id := c.Params("id")
+        if id == "" </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "missing id"})
+        }</span>
+
+        <span class="cov0" title="0">var payload ListPayload
+        if err := c.BodyParser(&amp;payload); err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+        }</span>
+
+        <span class="cov0" title="0">listToUpdate := entity.List{
+                ID:      payload.ID,
+                Name:    payload.Name,
+                Status:  payload.Status,
+                Details: payload.Details,
+        }
+
+        updatedList, err := h.usecase.PatchList(ctx, listToUpdate, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+
+        <span class="cov0" title="0">response := ListResponse{
+                ID:      updatedList.ID,
+                Name:    updatedList.Name,
+                Status:  updatedList.Status,
+                Details: updatedList.Details,
+        }
+
+        return c.Status(fiber.StatusOK).JSON(response)</span>
+}
+
+func (h todoHandler) DeleteList(c *fiber.Ctx) error <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(c.Context(), "handlers.DeleteList")
+        defer sp.End()
+        id := c.Params("id")
+        err := h.usecase.DeleteList(ctx, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+        <span class="cov0" title="0">return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "List deleted successfully"})</span>
+}
+
+func (h todoHandler) SortListsByID(c *fiber.Ctx) error <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(c.Context(), "handlers.SortListByID")
+        defer sp.End()
+        res := []ListResponse{}
+        lists, err := h.usecase.SortListsByID(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+
+        <span class="cov0" title="0">for _, rows := range lists </span><span class="cov0" title="0">{
+                res = append(res, ListResponse{
+                        ID:      rows.ID,
+                        Name:    rows.Name,
+                        Status:  rows.Status,
+                        Details: rows.Details,
+                })
+        }</span>
+        <span class="cov0" title="0">return c.Status(fiber.StatusOK).JSON(fiber.Map{"lists": res})</span>
+}
+func (h todoHandler) ChangeStatus(c *fiber.Ctx) error <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(c.Context(), "handlers.ChangeStatus")
+        defer sp.End()
+
+        id := c.Params("id")
+        if id == "" </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "missing id"})
+        }</span>
+        <span class="cov0" title="0">payload := new(ListPayload)
+        if err := c.BodyParser(payload); err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+
+        <span class="cov0" title="0">checkValid, err := h.Validation(*payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+
+        <span class="cov0" title="0">list := entity.List{
+                ID:      checkValid.ID,
+                Name:    checkValid.Name,
+                Status:  checkValid.Status,
+                Details: checkValid.Details,
+        }
+
+        updateList, err := h.usecase.ChangeStatus(ctx, list, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+        }</span>
+        <span class="cov0" title="0">res := ListResponse{
+                ID:      updateList.ID,
+                Name:    updateList.Name,
+                Status:  updateList.Status,
+                Details: updateList.Details,
+        }
+        return c.Status(fiber.StatusOK).JSON(res)</span>
+
+}
+
+func (h todoHandler) Validation(payload ListPayload) (ListPayload, error) <span class="cov0" title="0">{
+        if payload.Name == "" || payload.Details == "" || payload.Status == "" </span><span class="cov0" title="0">{
+                return payload, errors.New("missing required fields: all fields must be non-empty")
+        }</span>
+
+        <span class="cov0" title="0">return payload, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package middleware
+
+import (
+        "log/slog"
+        "strings"
+        "time"
+
+        "github.com/gofiber/fiber/v2"
+        "github.com/samber/lo"
+)
+
+// ฟังก์ชันเพื่อแปลง headers จาก map[string][]string เป็น map[string]string
+func fiberHeadersToMap(headers map[string][]string) map[string]string <span class="cov0" title="0">{
+        // ใช้ lo.MapValues เพื่อแปลงค่าของ headers จาก slice เป็น string
+        return lo.MapValues(headers, func(value []string, key string) string </span><span class="cov0" title="0">{
+                return strings.Join(value, ", ") // รวมค่าต่างๆ ใน slice ด้วย ,
+        }</span>)
+}
+
+func Logging(c *fiber.Ctx) error <span class="cov0" title="0">{
+        // ใช้ logger ที่กำหนดใน initLogger
+        logger := slog.Default()
+
+        start := time.Now()
+        err := c.Next()
+
+        // Log ข้อมูลของ request
+        logger.Info("Request",
+                "Method", c.Method(),
+                "Path", c.Path(),
+                "Handler", c.Route().Path,
+                "Query", c.Queries(),
+                "Body", string(c.Body()),
+                "Headers", fiberHeadersToMap(c.GetRespHeaders()),
+                "Params", c.AllParams(),
+                "RemoteIP", c.IP())
+
+        // Log ข้อมูลของ response
+        logger.Info("Response",
+                "Duration", time.Since(start).Seconds(),
+                "Headers", fiberHeadersToMap(c.GetRespHeaders()),
+                "Body", string(c.Response().Body()),
+                "Status", int64(c.Response().StatusCode()))
+
+        return err
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package middleware
+
+import (
+        "fmt"
+
+        "github.com/gofiber/fiber/v2"
+        "go.opentelemetry.io/otel"
+        "go.opentelemetry.io/otel/propagation"
+        semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+        "go.opentelemetry.io/otel/trace"
+)
+
+// Tracer เป็นตัวแทรก OpenTelemetry tracer
+var Tracer = otel.GetTracerProvider().Tracer("fiber-server")
+
+func TracerMiddleware(c *fiber.Ctx) error <span class="cov0" title="0">{
+        // สร้าง propagator แบบ composite เพื่อจัดการการข้อมูล context และ baggage
+        propagator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
+        carrier := propagation.HeaderCarrier{}
+
+        // แยกข้อมูล header เข้ามาและฝังลงใน context ปัจจุบัน
+        c.Request().Header.VisitAll(func(key, value []byte) </span><span class="cov0" title="0">{
+                carrier.Set(string(key), string(value))
+        }</span>)
+
+        <span class="cov0" title="0">propagator.Inject(c.Context(), carrier)
+
+        // กำหนด options สำหรับ span
+        spanOptions := []trace.SpanStartOption{
+                trace.WithAttributes(semconv.HTTPMethodKey.String(c.Method())),
+                trace.WithAttributes(semconv.HTTPTargetKey.String(string(c.Request().RequestURI()))),
+                trace.WithAttributes(semconv.HTTPRouteKey.String(c.Route().Path)),
+                trace.WithAttributes(semconv.HTTPURLKey.String(c.OriginalURL())),
+                trace.WithAttributes(semconv.UserAgentOriginal(string(c.Request().Header.UserAgent()))),
+                trace.WithAttributes(semconv.HTTPRequestContentLengthKey.Int(c.Request().Header.ContentLength())),
+                trace.WithAttributes(semconv.HTTPSchemeKey.String(c.Protocol())),
+                trace.WithAttributes(semconv.NetTransportTCP),
+                trace.WithSpanKind(trace.SpanKindServer),
+        }
+
+        // เริ่ม span ใหม่ด้วย options และ context ที่กำหนด
+        ctx, span := Tracer.Start(c.Context(), fmt.Sprintf("%s %s", c.Method(), c.Path()), spanOptions...)
+        defer span.End()
+
+        </span><span class="cov0" title="0">{
+                // ฝังข้อมูลของ span context ลงใน header ของ response ที่จะส่งออก
+                propagator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
+                carrier := propagation.HeaderCarrier{}
+                propagator.Inject(ctx, carrier)
+
+                for _, k := range carrier.Keys() </span><span class="cov0" title="0">{
+                        c.Response().Header.Set(k, carrier.Get(k))
+                }</span>
+        }
+
+        // ดำเนินการคำขอ
+        <span class="cov0" title="0">err := c.Next()
+
+        // ตั้งค่า attributes เกี่ยวกับ response บน span
+        span.SetAttributes(semconv.HTTPStatusCodeKey.Int(c.Response().StatusCode()))
+
+        return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package repository
+
+import (
+        "context"
+        "fmt"
+        "log/slog"
+
+        "github.com/thanapatfd/todolist/todo/entity"
+        "gorm.io/gorm"
+)
+
+type TodoModel struct {
+        ID      int
+        Name    string
+        Status  string
+        Details string
+}
+
+// todoRepositoryDB struct ใช้เก็บการเชื่อมต่อกับฐานข้อมูล
+type todoRepositoryDB struct {
+        db *gorm.DB
+}
+
+// NewTodoRepository เป็น constructor function สำหรับสร้าง instance ใหม่ของ todoRepositoryDB
+func NewTodoRepository(db *gorm.DB) todoRepositoryDB <span class="cov0" title="0">{
+        return todoRepositoryDB{db: db}
+}</span>
+
+func (r todoRepositoryDB) GetLists(ctx context.Context, name string, status string) ([]entity.List, error) <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(ctx, "repositories.GetLists")
+        defer sp.End()
+
+        listRepo := []TodoModel{}
+        result := r.db.WithContext(ctx)
+        if name != "" </span><span class="cov0" title="0">{
+                result = result.Where("name LIKE ?", "%"+name+"%") // ตามชื่อ
+        }</span>
+
+        <span class="cov0" title="0">if status != "" </span><span class="cov0" title="0">{
+                result = result.Where("status = ?", status) // ตามสถานะ
+        }</span>
+
+        <span class="cov0" title="0">result = result.Find(&amp;listRepo) // ดึงข้อมูลจากฐานข้อมูล
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Warn("query error")
+                return nil, result.Error
+        }</span>
+
+        <span class="cov0" title="0">var rows []entity.List
+        for _, list := range listRepo </span><span class="cov0" title="0">{
+                rows = append(rows, entity.List{
+                        ID:      list.ID,
+                        Name:    list.Name,
+                        Status:  list.Status,
+                        Details: list.Details,
+                })
+        }</span>
+
+        <span class="cov0" title="0">sp.AddEvent("Get Lists Success") // เพิ่มเหตุการณ์
+
+        return rows, nil</span>
+}
+
+func (r todoRepositoryDB) GetListByID(ctx context.Context, id string) (entity.List, error) <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(ctx, "repositories.GetListByID")
+        defer sp.End()
+
+        listRepo := TodoModel{}
+        result := r.db.WithContext(ctx).Where("id = ?", id).Limit(1).Find(&amp;listRepo) // ดึงข้อมูลจากฐานข้อมูลตาม ID
+        if result.Error != nil </span><span class="cov0" title="0">{
+                return entity.List{}, nil
+        }</span>
+
+        <span class="cov0" title="0">sp.AddEvent("Get List By ID Success") // เพิ่มเหตุการณ์
+
+        return entity.List{
+                ID:      listRepo.ID,
+                Name:    listRepo.Name,
+                Status:  listRepo.Status,
+                Details: listRepo.Details,
+        }, nil</span>
+}
+
+func (r todoRepositoryDB) CreateList(ctx context.Context, list entity.List) (entity.List, error) <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(ctx, "repositories.CreateList")
+        defer sp.End()
+
+        result := r.db.WithContext(ctx).Create(&amp;TodoModel{
+                Name:    list.Name,
+                Status:  list.Status,
+                Details: list.Details,
+        }) // สร้างรายการใหม่ในฐานข้อมูล
+
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Error("query error")
+                return list, result.Error
+        }</span>
+
+        <span class="cov0" title="0">lastInsertedID := 0
+
+        // ดึง ID ที่เพิ่งถูกอัปเดตล่าสุด (descending order)
+        r.db.Table("todo_models").Select("id").Order("id desc").Limit(1).Row().Scan(&amp;lastInsertedID) // ดึง ID ที่เพิ่งถูกสร้างขึ้นล่าสุด
+        list.ID = lastInsertedID
+
+        sp.AddEvent("Create List Success") // เพิ่มเหตุการณ์
+
+        return list, nil</span>
+}
+
+func (r todoRepositoryDB) UpdateList(ctx context.Context, list entity.List, id string) (entity.List, error) <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(ctx, "repository_UpdateList")
+        defer sp.End()
+
+        listRepo := TodoModel{}
+        result := r.db.WithContext(ctx).Where("id = ?", id).Limit(1).Find(&amp;listRepo) // ดึงข้อมูลจากฐานข้อมูลตาม ID
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Error("query error")
+                return entity.List{}, result.Error
+        }</span>
+
+        // อัปเดตเฉพาะฟิลด์ Name และ Details
+        <span class="cov0" title="0">result = r.db.WithContext(ctx).Model(&amp;listRepo).Updates(TodoModel{Name: list.Name, Details: list.Details}) // อัปเดตข้อมูลในฐานข้อมูล
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Error("query error")
+                return list, result.Error
+        }</span>
+
+        <span class="cov0" title="0">sp.AddEvent("Update List Success") // เพิ่มเหตุการณ์
+
+        // คืนค่า list ที่มีการอัปเดตแล้ว
+        list.ID = listRepo.ID // ใช้ค่า ID เดิม
+        return list, nil</span>
+}
+
+func (r todoRepositoryDB) PatchList(ctx context.Context, list entity.List, id string) (entity.List, error) <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(ctx, "repository_PatchList")
+        defer sp.End()
+
+        listRepo := TodoModel{}
+        result := r.db.WithContext(ctx).Where("id = ?", id).Find(&amp;listRepo) // ดึงข้อมูลจากฐานข้อมูลตาม ID
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Error("query error")
+                return entity.List{}, result.Error
+        }</span>
+
+        <span class="cov0" title="0">if list.Name != "" </span><span class="cov0" title="0">{
+                listRepo.Name = list.Name
+        }</span>
+        <span class="cov0" title="0">if list.Status != "" </span><span class="cov0" title="0">{
+                listRepo.Status = list.Status
+        }</span>
+        <span class="cov0" title="0">if list.Details != "" </span><span class="cov0" title="0">{
+                listRepo.Details = list.Details
+        }</span>
+
+        <span class="cov0" title="0">result = r.db.WithContext(ctx).Save(&amp;listRepo) // บันทึกข้อมูลในฐานข้อมูล
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Error("query error")
+                return entity.List{}, result.Error
+        }</span>
+
+        <span class="cov0" title="0">list = entity.List{
+                ID:      listRepo.ID,
+                Name:    listRepo.Name,
+                Status:  listRepo.Status,
+                Details: listRepo.Details,
+        }
+
+        sp.AddEvent("Patch List Success") // เพิ่มเหตุการณ์
+
+        return list, nil</span>
+}
+
+// DeleteList เป็นเมธอดสำหรับลบรายการ Todo จากฐานข้อมูลตาม ID
+func (r todoRepositoryDB) DeleteList(ctx context.Context, id string) error <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(ctx, "repository_DeleteList")
+        defer sp.End()
+
+        deleteList := TodoModel{}
+        result := r.db.WithContext(ctx).Where("id = ?", id).Delete(&amp;deleteList) // ลบข้อมูลจากฐานข้อมูลตาม ID
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Error("query error")
+                return result.Error
+        }</span>
+        <span class="cov0" title="0">sp.AddEvent("Delete List Success") // เพิ่มเหตุการณ์
+
+        return nil</span>
+}
+
+func (r todoRepositoryDB) SortListsByID(ctx context.Context) ([]entity.List, error) <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(ctx, "repository_SortList")
+        defer sp.End()
+
+        lists := []TodoModel{}
+        result := r.db.WithContext(ctx).Order("id").Find(&amp;lists) // ดึงข้อมูลจากฐานข้อมูลและเรียงลำดับตาม ID
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Error("query error")
+                return nil, result.Error
+        }</span>
+
+        <span class="cov0" title="0">var rows []entity.List
+        for _, list := range lists </span><span class="cov0" title="0">{
+                rows = append(rows, entity.List{
+                        ID:      list.ID,
+                        Name:    list.Name,
+                        Status:  list.Status,
+                        Details: list.Details,
+                })
+        }</span>
+
+        <span class="cov0" title="0">sp.AddEvent("Sort List Success") // เพิ่มเหตุการณ์
+
+        return rows, nil</span>
+}
+func (r todoRepositoryDB) ChangeStatus(ctx context.Context, list entity.List, id string) (entity.List, error) <span class="cov0" title="0">{
+        ctx, sp := tracer.Start(ctx, "repository_ChangeStatus")
+        defer sp.End()
+
+        // ดึงข้อมูลรายการจากฐานข้อมูลตาม ID
+        listRepo := TodoModel{}
+        result := r.db.WithContext(ctx).Where("id = ?", id).Limit(1).Find(&amp;listRepo)
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Error("query error")
+                return entity.List{}, result.Error
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Changing status from %s to %s\n", listRepo.Status, list.Status)
+
+        // สร้าง instance ของ List จากข้อมูลในฐานข้อมูล
+        currentList := entity.List{
+                ID:      listRepo.ID,
+                Name:    listRepo.Name,
+                Status:  listRepo.Status,
+                Details: listRepo.Details,
+        }
+
+        // เปลี่ยนสถานะของรายการโดยใช้ฟังก์ชัน ChangeStatus
+        err := currentList.ChangeStatus(list.Status)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Error("change status error")
+                return list, err
+        }</span>
+
+        // อัปเดตเฉพาะฟิลด์ Status ในฐานข้อมูล
+        <span class="cov0" title="0">result = r.db.WithContext(ctx).Model(&amp;listRepo).Update("status", currentList.Status)
+        if result.Error != nil </span><span class="cov0" title="0">{
+                slog.Error("query error")
+                return list, result.Error
+        }</span>
+
+        <span class="cov0" title="0">sp.AddEvent("Change Status Success")
+
+        // คืนค่า list ที่มีการอัปเดตแล้ว
+        list.ID = listRepo.ID // ใช้ค่า ID เดิม
+        list.Name = listRepo.Name
+        list.Details = listRepo.Details
+        list.Status = currentList.Status // ใช้สถานะที่เปลี่ยนแล้ว
+        return list, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package server
+
+import (
+        "fmt"
+        "log"
+        "os"
+
+        "github.com/thanapatfd/todolist/todo/repository" 
+        "gorm.io/driver/postgres"                       
+        "gorm.io/gorm"                                  
+        "gorm.io/gorm/logger"                           
+)
+
+
+const (
+        host     = "localhost"  
+        port     = 5432        
+        user     = "todo_admin" 
+        password = "admin"      
+        dbname   = "postgres"   
+)
+
+
+type postgresDB struct {
+        Db *gorm.DB // ตัวแปร Db เก็บการเชื่อมต่อฐานข้อมูล
+}
+
+
+func NewPosgrestDB() *postgresDB <span class="cov0" title="0">{
+
+        // สร้าง Data Source Name (DSN) สำหรับการเชื่อมต่อฐานข้อมูล
+        dsn := fmt.Sprintf("host=%s port=%d user=%s "+
+                "password=%s dbname=%s sslmode=disable",
+                host, port, user, password, dbname)
+
+        // เปิดการเชื่อมต่อกับฐานข้อมูล Postgres
+        db, err := gorm.Open(postgres.Open(dsn), &amp;gorm.Config{
+                Logger: logger.Default.LogMode(logger.Info), // ตั้งค่า logger ให้แสดงข้อมูลระดับ Info
+        })
+
+        // ตรวจสอบว่าการเชื่อมต่อฐานข้อมูลสำเร็จหรือไม่
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("Failed to connect to database. \n", err) 
+                os.Exit(2)
+        }</span>
+
+        <span class="cov0" title="0">log.Println("connected") 
+        db.Logger = logger.Default.LogMode(logger.Info) 
+        db.AutoMigrate(&amp;repository.TodoModel{}) // รันการทำ migrations สำหรับ model TodoModel
+        log.Println("running migrations")
+
+        return &amp;postgresDB{Db: db}</span> // คืนค่า instance ของ postgresDB ที่มีการเชื่อมต่อฐานข้อมูล
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package repository
+
+import (
+        "context"
+
+        "github.com/stretchr/testify/mock"
+        "github.com/thanapatfd/todolist/todo/entity"
+)
+
+type MockRepository struct {
+        mock.Mock
+}
+
+func (m *MockRepository) GetLists(ctx context.Context, name string, status string) ([]entity.List, error) <span class="cov8" title="1">{
+        args := m.Called(ctx, name, status)
+        return args.Get(0).([]entity.List), args.Error(1)
+}</span>
+
+func (m *MockRepository) GetListByID(ctx context.Context, id string) (entity.List, error) <span class="cov8" title="1">{
+        args := m.Called(ctx, id)
+        return args.Get(0).(entity.List), args.Error(1)
+
+}</span>
+
+func (m *MockRepository) CreateList(ctx context.Context, list entity.List) (entity.List, error) <span class="cov8" title="1">{
+        args := m.Called(ctx, list)
+        return args.Get(0).(entity.List), args.Error(1)
+}</span>
+
+func (m *MockRepository) UpdateList(ctx context.Context, list entity.List, id string) (entity.List, error) <span class="cov8" title="1">{
+        args := m.Called(ctx, list, id)
+        return args.Get(0).(entity.List), args.Error(1)
+}</span>
+
+func (m *MockRepository) PatchList(ctx context.Context, list entity.List, id string) (entity.List, error) <span class="cov8" title="1">{
+        args := m.Called(ctx, list, id)
+        return args.Get(0).(entity.List), args.Error(1)
+}</span>
+
+func (m *MockRepository) DeleteList(ctx context.Context, id string) error <span class="cov8" title="1">{
+        args := m.Called(ctx, id)
+        return args.Error(0)
+}</span>
+
+func (m *MockRepository) SortListsByID(ctx context.Context) ([]entity.List, error) <span class="cov8" title="1">{
+        args := m.Called(ctx)
+        return args.Get(0).([]entity.List), args.Error(1)
+}</span>
+func (m *MockRepository) ChangeStatus(ctx context.Context, list entity.List, id string) (entity.List, error) <span class="cov8" title="1">{
+        args := m.Called(ctx, list, id)
+        return args.Get(0).(entity.List), args.Error(1)
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package usecases
+
+import (
+        "context"
+        "log/slog"
+
+        "github.com/thanapatfd/todolist/todo/entity"
+)
+
+func (uc TodoUseCase) GetLists(ctx context.Context, name string, status string) ([]entity.List, error) <span class="cov8" title="1">{
+        ctx, sp := tracer.Start(ctx, "usecases.GetLists")
+        defer sp.End()
+
+        list, err := uc.todoRepo.GetLists(ctx, name, status)
+        if err != nil </span><span class="cov8" title="1">{
+                sp.RecordError(err)
+                slog.Error("query error")
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">sp.AddEvent("Get Lists Success")
+
+        return list, nil</span>
+}
+
+func (uc TodoUseCase) GetListByID(ctx context.Context, id string) (entity.List, error) <span class="cov8" title="1">{
+        ctx, sp := tracer.Start(ctx, "usecases.GetListByID")
+        defer sp.End()
+
+        list, err := uc.todoRepo.GetListByID(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                sp.RecordError(err)
+                return list, err
+        }</span>
+
+        <span class="cov8" title="1">sp.AddEvent("Get List By ID Success")
+
+        return list, nil</span>
+}
+func (uc TodoUseCase) CreateList(ctx context.Context, list entity.List) (entity.List, error) <span class="cov8" title="1">{
+        ctx, sp := tracer.Start(ctx, "usecases.CreateList")
+        defer sp.End()
+
+        list, err := uc.todoRepo.CreateList(ctx, list)
+        if err != nil </span><span class="cov8" title="1">{
+                sp.RecordError(err)
+                return list, err
+        }</span>
+
+        <span class="cov8" title="1">sp.AddEvent("Create List Success")
+
+        return list, nil</span>
+}
+
+func (uc TodoUseCase) UpdateList(ctx context.Context, list entity.List, id string) (entity.List, error) <span class="cov8" title="1">{
+        ctx, sp := tracer.Start(ctx, "usecases.UpdateList")
+        defer sp.End()
+
+        list, err := uc.todoRepo.UpdateList(ctx, list, id)
+        if err != nil </span><span class="cov8" title="1">{
+                sp.RecordError(err)
+                return list, err
+        }</span>
+
+        <span class="cov8" title="1">sp.AddEvent("Update List Success")
+
+        return list, nil</span>
+}
+
+func (uc TodoUseCase) PatchList(ctx context.Context, list entity.List, id string) (entity.List, error) <span class="cov8" title="1">{
+        ctx, sp := tracer.Start(ctx, "usecases.PatchList")
+        defer sp.End()
+
+        list, err := uc.todoRepo.PatchList(ctx, list, id)
+        if err != nil </span><span class="cov8" title="1">{
+                sp.RecordError(err)
+                return list, err
+        }</span>
+
+        <span class="cov8" title="1">sp.AddEvent("Patch List Success")
+
+        return list, nil</span>
+
+}
+
+func (uc TodoUseCase) DeleteList(ctx context.Context, id string) error <span class="cov8" title="1">{
+        ctx, sp := tracer.Start(ctx, "usecases.DeleteList")
+        defer sp.End()
+
+        err := uc.todoRepo.DeleteList(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                sp.RecordError(err)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">sp.AddEvent("Delete List Success")
+
+        return nil</span>
+}
+
+func (uc TodoUseCase) SortListsByID(ctx context.Context) ([]entity.List, error) <span class="cov8" title="1">{
+        ctx, sp := tracer.Start(ctx, "usecases.SortListByID")
+        defer sp.End()
+
+        list, err := uc.todoRepo.SortListsByID(ctx)
+        if err != nil </span><span class="cov8" title="1">{
+                sp.RecordError(err)
+                return list, err
+        }</span>
+        <span class="cov8" title="1">sp.AddEvent("Sort Lists Success")
+
+        return list, nil</span>
+}
+
+func (uc TodoUseCase) ChangeStatus(ctx context.Context, list entity.List, id string) (entity.List, error) <span class="cov8" title="1">{
+        ctx, sp := tracer.Start(ctx, "usecases.ChangeStatus")
+        defer sp.End()
+
+        list, err := uc.todoRepo.ChangeStatus(ctx, list, id)
+        if err != nil </span><span class="cov8" title="1">{
+                sp.RecordError(err)
+                return list, err
+        }</span>
+
+        <span class="cov8" title="1">return list, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package usecases
+
+import (
+        "github.com/thanapatfd/todolist/todo/usecases/repository"
+        "go.opentelemetry.io/otel"
+)
+
+var tracer = otel.Tracer("usecases")
+
+// TodoUseCase struct คือการจัดกลุ่มฟังก์ชันและข้อมูลที่เกี่ยวข้องกับ use case ของ todo list
+type TodoUseCase struct {
+todoRepo repository.TodoRepository // Dependency: todoRepo ชนิด TodoRepository ที่จะถูก inject เข้ามา
+}
+
+// NewUsecase คือ constructor function สำหรับสร้าง instance ของ TodoUseCase
+func NewUsecase(todoRepo repository.TodoRepository,) TodoUseCase <span class="cov8" title="1">{
+        return TodoUseCase{
+                todoRepo: todoRepo, // กำหนดค่าให้กับฟิลด์ todoRepo ใน struct TodoUseCase
+        }
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

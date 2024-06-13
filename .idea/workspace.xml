@@ -5,13 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="959322c6-b5d6-4616-af64-43532959d35a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/todo/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo/entity/todo_entity.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/entity/todo_entity.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/todo/handler/todo_handlers.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/handler/todo_handlers.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/todo/repository/todo_repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/repository/todo_repository.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/todo/usecases/todo.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/usecases/todo.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo/usecases/list_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/usecases/list_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo/usecases/repository/mock_todo.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/usecases/repository/mock_todo.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo/usecases/repository/repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/usecases/repository/repository.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/todo/usecases/todo_impl.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/usecases/todo_impl.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/todo/usecases/todo_usecase.go" beforeDir="false" afterPath="$PROJECT_DIR$/todo/usecases/todo_usecase.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,28 +25,110 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 5
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="2g5Dq3XAmBr0aZQXeTwBLnnF8Ai" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "git-widget-placeholder": "main",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/home/fordthanapat/Desktop/boilerplate-backend-go-main_1",
-    "nodejs_package_manager_path": "npm"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Go Test.TestTodoUseCase_ChangeStatus in github.com/thanapatfd/todolist/todo/usecases.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.TestTodoUseCase_ChangeStatus/ChangeStatus_Error in github.com/thanapatfd/todolist/todo/usecases.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.TestTodoUseCase_ChangeStatus/ChangeStatus_Success in github.com/thanapatfd/todolist/todo/usecases.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.TestTodoUseCase_GetLists in github.com/thanapatfd/todolist/todo/usecases.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.TestTodoUseCase_GetLists/Error in github.com/thanapatfd/todolist/todo/usecases.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.TestTodoUseCase_PatchList/PatchList_Error in github.com/thanapatfd/todolist/todo/usecases.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.TestTodoUseCase_PatchList/Patch_List_Success in github.com/thanapatfd/todolist/todo/usecases.executor&quot;: &quot;Run&quot;,
+    &quot;Go Test.go test github.com/thanapatfd/todolist/todo/usecases.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.automatic.dependencies.download&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;new__branch&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/fordthanapat/Desktop/Golang/todolist-clean-arch&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;coverage&quot;
   }
-}]]></component>
+}</component>
+  <component name="RunManager" selected="Go Test.TestTodoUseCase_GetLists/Error in github.com/thanapatfd/todolist/todo/usecases">
+    <configuration name="TestTodoUseCase_ChangeStatus in github.com/thanapatfd/todolist/todo/usecases" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="todolist-clean-arch" />
+      <working_directory value="$PROJECT_DIR$/todo/usecases" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/thanapatfd/todolist/todo/usecases" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestTodoUseCase_ChangeStatus\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestTodoUseCase_ChangeStatus/ChangeStatus_Error in github.com/thanapatfd/todolist/todo/usecases" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="todolist-clean-arch" />
+      <working_directory value="$PROJECT_DIR$/todo/usecases" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/thanapatfd/todolist/todo/usecases" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestTodoUseCase_ChangeStatus\E$/^\QChangeStatus_Error\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestTodoUseCase_ChangeStatus/ChangeStatus_Success in github.com/thanapatfd/todolist/todo/usecases" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="todolist-clean-arch" />
+      <working_directory value="$PROJECT_DIR$/todo/usecases" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/thanapatfd/todolist/todo/usecases" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestTodoUseCase_ChangeStatus\E$/^\QChangeStatus_Success\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestTodoUseCase_GetLists/Error in github.com/thanapatfd/todolist/todo/usecases" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="todolist-clean-arch" />
+      <working_directory value="$PROJECT_DIR$/todo/usecases" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/thanapatfd/todolist/todo/usecases" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestTodoUseCase_GetLists\E$/^\QError\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestTodoUseCase_PatchList/PatchList_Error in github.com/thanapatfd/todolist/todo/usecases" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="todolist-clean-arch" />
+      <working_directory value="$PROJECT_DIR$/todo/usecases" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/thanapatfd/todolist/todo/usecases" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestTodoUseCase_PatchList\E$/^\QPatchList_Error\E$" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go Test.TestTodoUseCase_GetLists/Error in github.com/thanapatfd/todolist/todo/usecases" />
+        <item itemvalue="Go Test.TestTodoUseCase_ChangeStatus/ChangeStatus_Error in github.com/thanapatfd/todolist/todo/usecases" />
+        <item itemvalue="Go Test.TestTodoUseCase_ChangeStatus/ChangeStatus_Success in github.com/thanapatfd/todolist/todo/usecases" />
+        <item itemvalue="Go Test.TestTodoUseCase_ChangeStatus in github.com/thanapatfd/todolist/todo/usecases" />
+        <item itemvalue="Go Test.TestTodoUseCase_PatchList/PatchList_Error in github.com/thanapatfd/todolist/todo/usecases" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>

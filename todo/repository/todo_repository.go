@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/thanapatfd/todolist/todo/entity"
@@ -26,11 +27,11 @@ func NewTodoRepository(db *gorm.DB) todoRepositoryDB {
 }
 
 func (r todoRepositoryDB) GetLists(ctx context.Context, name string, status string) ([]entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "repositories.GetLists") 
-	defer sp.End()                                      
+	ctx, sp := tracer.Start(ctx, "repositories.GetLists")
+	defer sp.End()
 
 	listRepo := []TodoModel{}
-	result := r.db.WithContext(ctx) 
+	result := r.db.WithContext(ctx)
 	if name != "" {
 		result = result.Where("name LIKE ?", "%"+name+"%") // ตามชื่อ
 	}
@@ -61,13 +62,13 @@ func (r todoRepositoryDB) GetLists(ctx context.Context, name string, status stri
 }
 
 func (r todoRepositoryDB) GetListByID(ctx context.Context, id string) (entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "repositories.GetListByID") 
-	defer sp.End()                                           
+	ctx, sp := tracer.Start(ctx, "repositories.GetListByID")
+	defer sp.End()
 
 	listRepo := TodoModel{}
 	result := r.db.WithContext(ctx).Where("id = ?", id).Limit(1).Find(&listRepo) // ดึงข้อมูลจากฐานข้อมูลตาม ID
 	if result.Error != nil {
-		return entity.List{}, nil 
+		return entity.List{}, nil
 	}
 
 	sp.AddEvent("Get List By ID Success") // เพิ่มเหตุการณ์
@@ -82,7 +83,7 @@ func (r todoRepositoryDB) GetListByID(ctx context.Context, id string) (entity.Li
 
 func (r todoRepositoryDB) CreateList(ctx context.Context, list entity.List) (entity.List, error) {
 	ctx, sp := tracer.Start(ctx, "repositories.CreateList")
-	defer sp.End()                                    
+	defer sp.End()
 
 	result := r.db.WithContext(ctx).Create(&TodoModel{
 		Name:    list.Name,
@@ -91,13 +92,13 @@ func (r todoRepositoryDB) CreateList(ctx context.Context, list entity.List) (ent
 	}) // สร้างรายการใหม่ในฐานข้อมูล
 
 	if result.Error != nil {
-		slog.Error("query error") 
+		slog.Error("query error")
 		return list, result.Error
 	}
 
 	lastInsertedID := 0
-	
-    // ดึง ID ที่เพิ่งถูกอัปเดตล่าสุด (descending order)
+
+	// ดึง ID ที่เพิ่งถูกอัปเดตล่าสุด (descending order)
 	r.db.Table("todo_models").Select("id").Order("id desc").Limit(1).Row().Scan(&lastInsertedID) // ดึง ID ที่เพิ่งถูกสร้างขึ้นล่าสุด
 	list.ID = lastInsertedID
 
@@ -107,8 +108,8 @@ func (r todoRepositoryDB) CreateList(ctx context.Context, list entity.List) (ent
 }
 
 func (r todoRepositoryDB) UpdateList(ctx context.Context, list entity.List, id string) (entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "repository_UpdateList") 
-	defer sp.End()                                   
+	ctx, sp := tracer.Start(ctx, "repository_UpdateList")
+	defer sp.End()
 
 	listRepo := TodoModel{}
 	result := r.db.WithContext(ctx).Where("id = ?", id).Limit(1).Find(&listRepo) // ดึงข้อมูลจากฐานข้อมูลตาม ID
@@ -117,37 +118,28 @@ func (r todoRepositoryDB) UpdateList(ctx context.Context, list entity.List, id s
 		return entity.List{}, result.Error
 	}
 
-	listRepo = TodoModel{
-		ID:      list.ID,
-		Name:    list.Name,
-		Status:  list.Status,
-		Details: list.Details,
-	}
-	result = r.db.WithContext(ctx).Where("id = ?", id).Updates(&listRepo) // อัปเดตข้อมูลในฐานข้อมูล
+	// อัปเดตเฉพาะฟิลด์ Name และ Details
+	result = r.db.WithContext(ctx).Model(&listRepo).Updates(TodoModel{Name: list.Name, Details: list.Details}) // อัปเดตข้อมูลในฐานข้อมูล
 	if result.Error != nil {
-		slog.Error("query error") 
+		slog.Error("query error")
 		return list, result.Error
 	}
 
-	lastInsertedID := 0
-
-    // ดึง ID ที่เพิ่งถูกอัปเดตล่าสุด (descending order)
-	r.db.Table("todo_models").Select("id").Order("id desc").Limit(1).Row().Scan(&lastInsertedID) 
-	list.ID = lastInsertedID
-
 	sp.AddEvent("Update List Success") // เพิ่มเหตุการณ์
 
+	// คืนค่า list ที่มีการอัปเดตแล้ว
+	list.ID = listRepo.ID // ใช้ค่า ID เดิม
 	return list, nil
 }
 
 func (r todoRepositoryDB) PatchList(ctx context.Context, list entity.List, id string) (entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "repository_PatchList") 
-	defer sp.End()                                     
+	ctx, sp := tracer.Start(ctx, "repository_PatchList")
+	defer sp.End()
 
 	listRepo := TodoModel{}
 	result := r.db.WithContext(ctx).Where("id = ?", id).Find(&listRepo) // ดึงข้อมูลจากฐานข้อมูลตาม ID
 	if result.Error != nil {
-		slog.Error("query error") 
+		slog.Error("query error")
 		return entity.List{}, result.Error
 	}
 
@@ -181,13 +173,13 @@ func (r todoRepositoryDB) PatchList(ctx context.Context, list entity.List, id st
 
 // DeleteList เป็นเมธอดสำหรับลบรายการ Todo จากฐานข้อมูลตาม ID
 func (r todoRepositoryDB) DeleteList(ctx context.Context, id string) error {
-	ctx, sp := tracer.Start(ctx, "repository_DeleteList") 
-	defer sp.End()                                      
+	ctx, sp := tracer.Start(ctx, "repository_DeleteList")
+	defer sp.End()
 
 	deleteList := TodoModel{}
 	result := r.db.WithContext(ctx).Where("id = ?", id).Delete(&deleteList) // ลบข้อมูลจากฐานข้อมูลตาม ID
 	if result.Error != nil {
-		slog.Error("query error") 
+		slog.Error("query error")
 		return result.Error
 	}
 	sp.AddEvent("Delete List Success") // เพิ่มเหตุการณ์
@@ -196,13 +188,13 @@ func (r todoRepositoryDB) DeleteList(ctx context.Context, id string) error {
 }
 
 func (r todoRepositoryDB) SortListsByID(ctx context.Context) ([]entity.List, error) {
-	ctx, sp := tracer.Start(ctx, "repository_SortList") 
-	defer sp.End()                                     
+	ctx, sp := tracer.Start(ctx, "repository_SortList")
+	defer sp.End()
 
 	lists := []TodoModel{}
 	result := r.db.WithContext(ctx).Order("id").Find(&lists) // ดึงข้อมูลจากฐานข้อมูลและเรียงลำดับตาม ID
 	if result.Error != nil {
-		slog.Error("query error") 
+		slog.Error("query error")
 		return nil, result.Error
 	}
 
@@ -219,4 +211,49 @@ func (r todoRepositoryDB) SortListsByID(ctx context.Context) ([]entity.List, err
 	sp.AddEvent("Sort List Success") // เพิ่มเหตุการณ์
 
 	return rows, nil
+}
+func (r todoRepositoryDB) ChangeStatus(ctx context.Context, list entity.List, id string) (entity.List, error) {
+	ctx, sp := tracer.Start(ctx, "repository_ChangeStatus")
+	defer sp.End()
+
+	// ดึงข้อมูลรายการจากฐานข้อมูลตาม ID
+	listRepo := TodoModel{}
+	result := r.db.WithContext(ctx).Where("id = ?", id).Limit(1).Find(&listRepo)
+	if result.Error != nil {
+		slog.Error("query error")
+		return entity.List{}, result.Error
+	}
+
+	fmt.Printf("Changing status from %s to %s\n", listRepo.Status, list.Status)
+
+	// สร้าง instance ของ List จากข้อมูลในฐานข้อมูล
+	currentList := entity.List{
+		ID:      listRepo.ID,
+		Name:    listRepo.Name,
+		Status:  listRepo.Status,
+		Details: listRepo.Details,
+	}
+
+	// เปลี่ยนสถานะของรายการโดยใช้ฟังก์ชัน ChangeStatus
+	err := currentList.ChangeStatus(list.Status)
+	if err != nil {
+		slog.Error("change status error")
+		return list, err
+	}
+
+	// อัปเดตเฉพาะฟิลด์ Status ในฐานข้อมูล
+	result = r.db.WithContext(ctx).Model(&listRepo).Update("status", currentList.Status)
+	if result.Error != nil {
+		slog.Error("query error")
+		return list, result.Error
+	}
+
+	sp.AddEvent("Change Status Success")
+
+	// คืนค่า list ที่มีการอัปเดตแล้ว
+	list.ID = listRepo.ID // ใช้ค่า ID เดิม
+	list.Name = listRepo.Name
+	list.Details = listRepo.Details
+	list.Status = currentList.Status // ใช้สถานะที่เปลี่ยนแล้ว
+	return list, nil
 }

@@ -43,6 +43,7 @@ func main() {
 	app.Put("/lists/:id", todoHandler.UpdateList)
 	app.Patch("/lists/:id", todoHandler.PatchList)
 	app.Delete("/lists/:id", todoHandler.DeleteList)
+	app.Put("/lists/changestatus/:id", todoHandler.ChangeStatus)
 
 	app.Listen(":5050")
 }

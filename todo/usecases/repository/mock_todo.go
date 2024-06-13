@@ -39,10 +39,14 @@ func (m *MockRepository) PatchList(ctx context.Context, list entity.List, id str
 
 func (m *MockRepository) DeleteList(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
-	return args.Error(1)
+	return args.Error(0)
 }
 
 func (m *MockRepository) SortListsByID(ctx context.Context) ([]entity.List, error) {
 	args := m.Called(ctx)
 	return args.Get(0).([]entity.List), args.Error(1)
+}
+func (m *MockRepository) ChangeStatus(ctx context.Context, list entity.List, id string) (entity.List, error) {
+	args := m.Called(ctx, list, id)
+	return args.Get(0).(entity.List), args.Error(1)
 }

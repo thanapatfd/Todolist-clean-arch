@@ -56,12 +56,6 @@ func (uc TodoUseCase) UpdateList(ctx context.Context, list entity.List, id strin
 	ctx, sp := tracer.Start(ctx, "usecases.UpdateList")
 	defer sp.End()
 
-	err1 := list.ChangeStatus(list.Status)
-	if err1 != nil {
-		sp.RecordError(err1)
-		return list, err1
-	}
-
 	list, err := uc.todoRepo.UpdateList(ctx, list, id)
 	if err != nil {
 		sp.RecordError(err)
@@ -111,9 +105,22 @@ func (uc TodoUseCase) SortListsByID(ctx context.Context) ([]entity.List, error) 
 	list, err := uc.todoRepo.SortListsByID(ctx)
 	if err != nil {
 		sp.RecordError(err)
-		return nil, err
+		return list, err
 	}
 	sp.AddEvent("Sort Lists Success")
+
+	return list, nil
+}
+
+func (uc TodoUseCase) ChangeStatus(ctx context.Context, list entity.List, id string) (entity.List, error) {
+	ctx, sp := tracer.Start(ctx, "usecases.ChangeStatus")
+	defer sp.End()
+
+	list, err := uc.todoRepo.ChangeStatus(ctx, list, id)
+	if err != nil {
+		sp.RecordError(err)
+		return list, err
+	}
 
 	return list, nil
 }
