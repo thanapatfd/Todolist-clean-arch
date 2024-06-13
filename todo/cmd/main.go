@@ -27,12 +27,13 @@ func main() {
 	app := fiber.New()
 	db := server.NewPosgrestDB()
 	todoRepo := repository.NewTodoRepository(db.Db)
-	todoUsecase := usecases.NewTodoUseCase(todoRepo)
+	todoUsecase := usecases.NewUsecase(todoRepo)
 	todoHandler := handlers.NewTodoHandler(todoUsecase)
 
 	cfg := initEnvironment()
-
 	initTracer(cfg)
+	initLogger(cfg)
+
 	app.Use(middleware.Logging)
 
 	app.Get("/lists", todoHandler.GetLists)
@@ -42,6 +43,7 @@ func main() {
 	app.Put("/lists/:id", todoHandler.UpdateList)
 	app.Patch("/lists/:id", todoHandler.PatchList)
 	app.Delete("/lists/:id", todoHandler.DeleteList)
+	app.Put("/lists/changestatus/:id", todoHandler.ChangeStatus)
 
 	app.Listen(":5050")
 }

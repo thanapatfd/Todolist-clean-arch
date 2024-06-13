@@ -2,4 +2,4 @@ package repository
 
 import "go.opentelemetry.io/otel"
 
-var tracer = otel.Tracer("repository")
+var tracer = otel.Tracer("repositories")

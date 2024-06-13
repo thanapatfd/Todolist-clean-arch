@@ -4,19 +4,25 @@ services:
   postgres:
     image: postgres:latest
     container_name: postgres
-    env_file:
-      - .env
+    environment:
+      DB_HOSTNAME: postgres
+      POSTGRES_DB: todo_db
+      POSTGRES_USER: todo_admin
+      POSTGRES_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: todo@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: 1234
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    restart: unless-stopped
+    restart: always
 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin
-    env_file:
-      - .env
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=todo@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=1234
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     ports:
@@ -25,28 +31,27 @@ services:
       - postgres
     restart: unless-stopped
 
-  # otel:
-  #   image: otel/opentelemetry-collector-contrib:0.95.0
-  #   restart: always
-  #   volumes:
-  #     - ./otel-config.yaml:/etc/otel-config.yaml
-  #   command: ["--config", "/etc/otel-config.yaml"]
-  #   ports:
-  #       - "4317:4317"
-
-  lgtm:
+  otel-lgtm:
     image: grafana/otel-lgtm
+    container_name: otel-lgtm
     ports:
       - "4317:4317"
       - "4318:4318"
       - "3000:3000"
+    restart: unless-stopped
 
-  # tempo:
-  #   image: grafana/tempo:latest
-  #   container_name: tempo
-  #   ports:
-  #     - "3200:9411"
-  #   restart: always
+
+  todo_ford:
+    image: fordthanapat/todo_ford:v2
+    container_name: todo_ford
+    env_file:
+      - .env
+    ports:
+      - "8000:5050" 
+    depends_on:
+      - postgres 
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local

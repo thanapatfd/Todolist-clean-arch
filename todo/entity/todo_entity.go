@@ -2,6 +2,7 @@ package entity
 
 import (
 	"errors"
+	"fmt"
 )
 
 type List struct {
@@ -12,6 +13,8 @@ type List struct {
 }
 
 func (l *List) ChangeStatus(newStatus string) error {
+	fmt.Printf("Current Status: %s, New Status: %s\n", l.Status, newStatus)
+
 	if newStatus == "" {
 		return errors.New("invalid status")
 	}
@@ -34,5 +37,5 @@ func (l *List) ChangeStatus(newStatus string) error {
 		return nil
 	}
 
-	return errors.New("invalid status na jaa")
+	return errors.New("invalid status")
 }

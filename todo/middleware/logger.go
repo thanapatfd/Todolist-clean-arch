@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"log/slog"
-	"os"
 	"strings"
 	"time"
 
@@ -10,23 +9,22 @@ import (
 	"github.com/samber/lo"
 )
 
+// ฟังก์ชันเพื่อแปลง headers จาก map[string][]string เป็น map[string]string
 func fiberHeadersToMap(headers map[string][]string) map[string]string {
+	// ใช้ lo.MapValues เพื่อแปลงค่าของ headers จาก slice เป็น string
 	return lo.MapValues(headers, func(value []string, key string) string {
-		return strings.Join(value, ", ")
+		return strings.Join(value, ", ") // รวมค่าต่างๆ ใน slice ด้วย ,
 	})
 }
 
 func Logging(c *fiber.Ctx) error {
-
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
-
-	slog.SetDefault(logger)
+	// ใช้ logger ที่กำหนดใน initLogger
+	logger := slog.Default()
 
 	start := time.Now()
 	err := c.Next()
 
+	// Log ข้อมูลของ request
 	logger.Info("Request",
 		"Method", c.Method(),
 		"Path", c.Path(),
@@ -37,7 +35,8 @@ func Logging(c *fiber.Ctx) error {
 		"Params", c.AllParams(),
 		"RemoteIP", c.IP())
 
-	logger.Info("Request",
+	// Log ข้อมูลของ response
+	logger.Info("Response",
 		"Duration", time.Since(start).Seconds(),
 		"Headers", fiberHeadersToMap(c.GetRespHeaders()),
 		"Body", string(c.Response().Body()),
